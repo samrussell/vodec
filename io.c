@@ -4,5 +4,39 @@
  */
 
 #include "io.h"
+#include <libavformat/avformat.h>
+
+
+/*
+ * OpenInput(filename, format)
+ * Opens a media file for input
+ * Should be updated to give a better interface to streams
+ */
+
+AVFormatContext* OpenInput(const char* filename, AVInputFormat* format){
+  AVFormatContext* format_context = NULL;
+
+  if(avformat_open_input(&format_context, filename, format, NULL)!=0)
+    return NULL;
+  return format_context;
+}
+
+/*
+ * OpenOutput(filename, format)
+ * Opens a media file for output
+ */
+
+AVFormatContext* OpenOutput(const char* filename, AVOutputFormat* format){
+  AVFormatContext* format_context;
+  AVOutputFormat* output_format;
+
+  format_context = avformat_alloc_context();
+  if (!outfmtcontext){
+    return NULL;
+  output_format = av_guess_format(NULL, filename, NULL);
+  format_context->oformat = output_format;
+
+  return format_context;
+}
 
 
