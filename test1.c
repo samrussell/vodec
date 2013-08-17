@@ -23,27 +23,7 @@
 
 #include <stdio.h>
 
-void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
-  FILE *pFile;
-  char szFilename[32];
-  int  y;
-
-  // Open file
-  sprintf(szFilename, "frame%d.ppm", iFrame);
-  pFile=fopen(szFilename, "wb");
-  if(pFile==NULL)
-    return;
-
-  // Write header
-  fprintf(pFile, "P6\n%d %d\n255\n", width, height);
-
-  // Write pixel data
-  for(y=0; y<height; y++)
-    fwrite(pFrame->data[0]+y*pFrame->linesize[0], 1, width*3, pFile);
-
-  // Close file
-  fclose(pFile);
-}
+#include "io.h"
 
 int main(int argc, char *argv[]) {
   AVFormatContext *pFormatCtx = NULL;
@@ -91,7 +71,9 @@ int main(int argc, char *argv[]) {
   av_register_all();
 
   // Open video file
-  if(avformat_open_input(&pFormatCtx, argv[1], NULL, NULL)!=0)
+  //if(avformat_open_input(&pFormatCtx, argv[1], NULL, NULL)!=0)
+  pFormatCtx = OpenInput(argv[1], NULL);
+  if(!pFormatCtx)
     return -1; // Couldn't open file
 
   // Retrieve stream information
@@ -174,52 +156,16 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  // put sample parameters
-  /*
-  c->bit_rate = 400000;
-  // resolution must be a multiple of two
-  c->width = 352;
-  c->height = 288;
-  // frames per second
-  c->time_base= (AVRational){1,25};
-  c->gop_size = 10; // emit one intra frame every ten frames
-  c->max_b_frames=1;
-  c->pix_fmt = AV_PIX_FMT_YUV420P;
-  */
 
-  // steal parameters from the other context
-  //pCodecCtxOut->bit_rate = pCodecCtx->bit_rate;
   pCodecCtxOut->bit_rate = 4000000;
 
   pCodecCtxOut->width = pCodecCtx->width;
   pCodecCtxOut->height = pCodecCtx->height;
-  //pCodecCtxOut->time_base = pCodecCtx->time_base;
   pCodecCtxOut->time_base = (AVRational){1,10};
   pCodecCtxOut->gop_size = pCodecCtx->gop_size;
   pCodecCtxOut->max_b_frames = pCodecCtx->max_b_frames;
   pCodecCtxOut->pix_fmt = pCodecCtx->pix_fmt;
 
-  // stealing a profile to make x264 work
-  /*
-  pCodecCtxOut->bit_rate_tolerance = 0;
-  pCodecCtxOut->rc_max_rate = 0;
-  pCodecCtxOut->rc_buffer_size = 0;
-  pCodecCtxOut->b_frame_strategy = 1;
-  pCodecCtxOut->coder_type = 1;
-  pCodecCtxOut->me_cmp = 1;
-  pCodecCtxOut->me_range = 16;
-  pCodecCtxOut->qmin = 10;
-  pCodecCtxOut->qmax = 51;
-  pCodecCtxOut->scenechange_threshold = 40;
-  pCodecCtxOut->flags |= CODEC_FLAG_LOOP_FILTER;
-  pCodecCtxOut->me_method = ME_HEX;
-  pCodecCtxOut->me_subpel_quality = 5;
-  pCodecCtxOut->i_quant_factor = 0.71;
-  pCodecCtxOut->qcompress = 0.6;
-  pCodecCtxOut->max_qdiff = 4;
-  pCodecCtxOut->directpred = 1;
-  pCodecCtxOut->flags2 |= CODEC_FLAG2_FASTPSKIP;
-  */
 
   if (avcodec_open(pCodecCtxOut, pCodecOut) < 0) {
     fprintf(stderr, "Could not open codec\n");
@@ -227,114 +173,21 @@ int main(int argc, char *argv[]) {
   }
 
 
-
-  //f = fopen(argv[2], "wb");
-  //if (!f) {
-  //  fprintf(stderr, "Could not open %s\n", argv[2]);
-  //  exit(1);
-  //}
-
-  // use libavformat for output instead
-  outfmtcontext = avformat_alloc_context();
+  outfmtcontext = OpenOutput(argv[2], NULL);
   if (!outfmtcontext){
     fprintf(stderr, "Couldn't create output format context\n");
     exit(1);
   }
+  outfmt = outfmtcontext->oformat;
 
-  outfmt = av_guess_format(NULL,argv[2],NULL);
-
-  outfmtcontext->oformat = outfmt;
 
   outvideostream = avformat_new_stream(outfmtcontext, NULL);
   avcodec_copy_context( outvideostream->codec, pCodecCtxOut );
-
-  av_dump_format(outfmtcontext, 0, argv[2], 1);
-
-  if (!(outfmt->flags & AVFMT_NOFILE)) {
-    if (avio_open(&outfmtcontext->pb, argv[2], AVIO_FLAG_WRITE) < 0) {
-      fprintf(stderr, "Could not open '%s'\n", argv[2]);
-      exit(1);
-    }
-  }
 
   if (avformat_write_header(outfmtcontext, NULL) < 0) {
     fprintf(stderr, "Error occurred when opening output file\n");
     exit(1);
   }
-
-  //pFrameOut = avcodec_alloc_frame();
-  //if (!pFrameOut) {
-  //  fprintf(stderr, "Could not allocate video frame\n");
-  //  exit(1);
-  //}
-  //pFrameOut->format = pCodecCtxOut->pix_fmt;
-  //pFrameOut->width  = pCodecCtxOut->width;
-  //pFrameOut->height = pCodecCtxOut->height;
-
-  /* the image can be allocated by any means and av_image_alloc() is
-   * just the most convenient way if av_malloc() is to be used */
-  //ret = av_image_alloc(frame->data, frame->linesize, c->width, c->height,
-  //                     c->pix_fmt, 32);
-  //if (ret < 0) {
-  //  fprintf(stderr, "Could not allocate raw picture buffer\n");
-  //  exit(1);
-  //}
-  /* encode 1 second of video */
-  //for(i=0;i<25;i++) {
-  /*
-    av_init_packet(&packetOut);
-    packetOut.data = NULL;    // packet data will be allocated by the encoder
-    packetOut.size = 0;
-
-    // encode the image
-    ret = avcodec_encode_video2(c, &packetOut, frame, &got_output);
-    if (ret < 0) {
-      fprintf(stderr, "Error encoding frame\n");
-      exit(1);
-    }
-
-    if (got_output) {
-      printf("Write frame %3d (size=%5d)\n", i, packetOut.size);
-      fwrite(packetOut.data, 1, packetOut.size, f);
-      av_free_packet(&packetOut);
-    }
-  */
-  //}
-
-  /* get the delayed frames */
-  /*
-  for (got_output = 1; got_output; i++) {
-    fflush(stdout);
-
-    ret = avcodec_encode_video2(c, &packetOut, NULL, &got_output);
-    if (ret < 0) {
-      fprintf(stderr, "Error encoding frame\n");
-      exit(1);
-    }
-
-    if (got_output) {
-      printf("Write frame %3d (size=%5d)\n", i, packetOut.size);
-      fwrite(packetOut.data, 1, packetOut.size, f);
-      av_free_packet(&packetOut);
-    }
-  }
-  */
-
-  /*
-  fwrite(endcode, 1, sizeof(endcode), f);
-  fclose(f);
-
-  avcodec_close(pCodecCtxOut);
-  //av_free(pCodecCtxOut);
-  //av_freep(&frame->data[0]);
-  //avcodec_free_frame(&frame);
-  printf("\n");
-  */
-
-  // Do the transcode part
-
-  // Prepare buffer for encoded data
-
 
 
 outbuf_size=100000;
@@ -354,20 +207,7 @@ printf("Ready to start the process\n");
 
       // Did we get a video frame?
       if(frameFinished) {
-	  // Convert the image from its native format to RGB
-        sws_scale
-        (
-            sws_ctx,
-            (uint8_t const * const *)pFrame->data,
-            pFrame->linesize,
-            0,
-            pCodecCtx->height,
-            pFrameRGB->data,
-            pFrameRGB->linesize
-        );
-
-
-        // also encode
+	      // encode
         av_init_packet(&packetOut);
         packetOut.data = NULL;    // packet data will be allocated by the encoder
         packetOut.size = 0;
@@ -419,18 +259,6 @@ printf("Ready to start the process\n");
   // finish encode
   for (out_size=1; out_size; i++) {
     fflush(stdout);
-
-    //ret = avcodec_encode_video2(pCodecCtxOut, &packetOut, NULL, &got_output);
-    //if (ret < 0) {
-    //  fprintf(stderr, "Error encoding frame\n");
-    //  exit(1);
-    //}
-
-    //if (got_output) {
-    //  printf("Write frame %3d (size=%5d)\n", i, packetOut.size);
-    //  fwrite(packetOut.data, 1, packetOut.size, f);
-    //  av_free_packet(&packetOut);
-    //}
     av_init_packet(&packetOut);
     packetOut.data = NULL;    // packet data will be allocated by the encoder
     packetOut.size = 0;
@@ -442,13 +270,9 @@ printf("Ready to start the process\n");
       av_write_frame(outfmtcontext, &packetOut);
     }
     av_free_packet(&packetOut);
-    //fwrite(outbuf, 1, out_size, f);
 
   }
 
-  /* add sequence end code to have a real mpeg file */
-  //fwrite(endcode, 1, sizeof(endcode), f);
-  //fclose(f);
   av_write_trailer( outfmtcontext );
   avio_close( outfmtcontext->pb );
   avformat_free_context( outfmtcontext );

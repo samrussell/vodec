@@ -26,30 +26,33 @@ AVFormatContext* OpenInput(const char* filename, AVInputFormat* format){
  * Opens a media file for output
  */
 
-AVFormatContext* OpenOutput(const char* filename, AVOutputFormat* format){
+AVFormatContext* OpenOutput(const char* filename, AVOutputFormat* output_format){
   AVFormatContext* format_context;
-  AVOutputFormat* output_format;
 
   format_context = avformat_alloc_context();
   if (!format_context){
+    printf("avformat_alloc_context() failed\n");
     return NULL;
-  output_format = av_guess_format(NULL, filename, NULL);
+  }
+  if(!output_format)
+    output_format = av_guess_format(NULL, filename, NULL);
   format_context->oformat = output_format;
 
   if (!(output_format->flags & AVFMT_NOFILE)) {
     if (avio_open(&format_context->pb, filename, AVIO_FLAG_WRITE) < 0) {
+      printf("avio_open() failed\n");
       return NULL;
     }
   }
   else{
+    printf("AVFMT_NOFILE not in flags\n");
     return NULL;
   }
 
-  if (avformat_write_header(format_context, NULL) < 0) {
+  /*if (avformat_write_header(format_context, NULL) < 0) {
+    printf("avformat_write_header() failed\n");
     return NULL;
-  }
-
-
+  }*/
   return format_context;
 }
 

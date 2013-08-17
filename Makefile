@@ -2,10 +2,10 @@
 # http://www.gnu.org/software/make/manual/make.html
 #
 CC:=gcc
-INCLUDES:=$(shell pkg-config --cflags libavformat libavcodec libavutil)
+INCLUDES:=$(shell pkg-config --cflags libavformat libavcodec libswscale libavutil)
 CFLAGS:=-Wall -ggdb
-LDFLAGS:=$(shell pkg-config --libs libavformat libavcodec libavutil) -lm
-EXE:=demo.out test1.c
+LDFLAGS:=$(shell pkg-config --libs libavformat libavcodec libswscale libavutil) -lm
+EXE:=test1.out
 
 
 #
@@ -18,7 +18,7 @@ EXE:=demo.out test1.c
 # $< is the first dependency in the dependency list
 # $@ is the target name
 #
-all: dirs $(addprefix bin/, $(EXE)) tags
+all: dirs obj/io.o $(addprefix bin/, $(EXE)) tags
 
 dirs:
 	mkdir -p obj
@@ -28,7 +28,7 @@ tags: *.c
 	ctags *.c
 
 bin/%.out: obj/%.o
-	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@
+	$(CC) $(CFLAGS) $< $(LDFLAGS) obj/io.o -o $@
 
 obj/%.o : %.c
 	$(CC) $(CFLAGS) $< $(INCLUDES) -c -o $@
