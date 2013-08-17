@@ -5,7 +5,7 @@ CC:=gcc
 INCLUDES:=$(shell pkg-config --cflags libavformat libavcodec libavutil)
 CFLAGS:=-Wall -ggdb
 LDFLAGS:=$(shell pkg-config --libs libavformat libavcodec libavutil) -lm
-EXE:=demo.out
+EXE:=demo.out test1.c
 
 
 #
