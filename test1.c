@@ -34,11 +34,8 @@ int main(int argc, char *argv[]) {
   AVFrame         *pFrameRGB = NULL;
   AVPacket        packet;
   int             frameFinished;
-  int             numBytes;
-  uint8_t         *buffer = NULL;
 
   AVDictionary    *optionsDict = NULL;
-  struct SwsContext      *sws_ctx = NULL;
 
   AVFormatContext *pFormatCtxOut = NULL;
   int             videoStreamOut;
@@ -61,7 +58,6 @@ int main(int argc, char *argv[]) {
   uint8_t endcode[] = { 0, 0, 1, 0xb7 };
 
   AVDictionary    *optionsDictOut = NULL;
-  struct SwsContext *sws_ctxOut = NULL;
 
   if(argc < 3) {
     printf("Please provide a movie file\n");
@@ -109,37 +105,6 @@ int main(int argc, char *argv[]) {
   // Allocate video frame
   pFrame=avcodec_alloc_frame();
 
-  // Allocate an AVFrame structure
-  pFrameRGB=avcodec_alloc_frame();
-  if(pFrameRGB==NULL)
-    return -1;
-
-  // Determine required buffer size and allocate buffer
-  numBytes=avpicture_get_size(PIX_FMT_RGB24, pCodecCtx->width,
-			      pCodecCtx->height);
-  buffer=(uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
-
-  sws_ctx =
-    sws_getContext
-    (
-        pCodecCtx->width,
-        pCodecCtx->height,
-        pCodecCtx->pix_fmt,
-        pCodecCtx->width,
-        pCodecCtx->height,
-        PIX_FMT_RGB24,
-        SWS_BILINEAR,
-        NULL,
-        NULL,
-        NULL
-    );
-
-  // Assign appropriate parts of buffer to image planes in pFrameRGB
-  // Note that pFrameRGB is an AVFrame, but AVFrame is a superset
-  // of AVPicture
-  avpicture_fill((AVPicture *)pFrameRGB, buffer, PIX_FMT_RGB24,
-		 pCodecCtx->width, pCodecCtx->height);
-
   // Set up output encoder too
 
   // find the encoder AV_CODEC_ID_H264
@@ -184,6 +149,9 @@ int main(int argc, char *argv[]) {
   outvideostream = avformat_new_stream(outfmtcontext, NULL);
   avcodec_copy_context( outvideostream->codec, pCodecCtxOut );
 
+  if (outfmt->flags & AVFMT_GLOBALHEADER)
+    pCodecCtxOut->flags |= CODEC_FLAG_GLOBAL_HEADER;
+
   if (avformat_write_header(outfmtcontext, NULL) < 0) {
     fprintf(stderr, "Error occurred when opening output file\n");
     exit(1);
@@ -211,24 +179,6 @@ printf("Ready to start the process\n");
         av_init_packet(&packetOut);
         packetOut.data = NULL;    // packet data will be allocated by the encoder
         packetOut.size = 0;
-
-
-        // encode the image
-        //ret = avcodec_encode_video2(pCodecCtxOut, &packetOut, pFrame, &got_output);
-        //if (ret < 0) {
-        //  fprintf(stderr, "Error encoding frame\n");
-        //  exit(1);
-        //}
-
-        //printf("About to start encoding\n");
-
-        /*if(outvideostream == NULL){//create stream in file
-          outvideostream = avformat_new_stream(outfmtcontext,pCodec);
-          avcodec_copy_context(outvideostream->codec,pCodec);
-          outvideostream->sample_aspect_ratio = pCodec->sample_aspect_ratio;
-          avformat_write_header(oc,NULL);
-        }
-        packet.stream_index = outvideostream->id*/
 
         // use avcodec_encode_video() (not 2)
         out_size = avcodec_encode_video(pCodecCtxOut, outbuf, outbuf_size, pFrame);
@@ -278,10 +228,6 @@ printf("Ready to start the process\n");
   avformat_free_context( outfmtcontext );
   free(outbuf);
   avcodec_close(pCodecCtxOut);
-
-  // Free the RGB image
-  av_free(buffer);
-  av_free(pFrameRGB);
 
   // Free the YUV frame
   av_free(pFrame);
