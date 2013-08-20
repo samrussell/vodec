@@ -81,6 +81,7 @@ int main(int argc, char *argv[]) {
   printf("Time base: %d/%d\n", pFormatCtx->streams[videoStream]->time_base.num, pFormatCtx->streams[videoStream]->time_base.den);
   printf("Real base frame rate: %d/%d\n", pFormatCtx->streams[videoStream]->r_frame_rate.num, pFormatCtx->streams[videoStream]->r_frame_rate.den);
   printf("Bit rate: %d\n", pFormatCtx->streams[videoStream]->codec->bit_rate); 
+  printf("Frame rate: %d/%d\n", pFormatCtx->streams[videoStream]->codec->time_base.num, pFormatCtx->streams[videoStream]->codec->time_base.den);
   
   // Find the decoder for the video stream
   pCodec=avcodec_find_decoder(pCodecCtx->codec_id);

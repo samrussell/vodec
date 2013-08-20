@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
   // Set up output encoder too
 
   // find the encoder AV_CODEC_ID_H264
-  pCodecOut = avcodec_find_encoder(CODEC_ID_VP8); //CODEC_ID_H264);
+  pCodecOut = avcodec_find_encoder(CODEC_ID_H264); //CODEC_ID_H264);
 
   if (!pCodecOut) {
     fprintf(stderr, "Codec not found\n");
@@ -122,15 +122,41 @@ int main(int argc, char *argv[]) {
   }
 
 
-  pCodecCtxOut->bit_rate = 384000;
-
+  pCodecCtxOut->bit_rate = 38400000;
+  pCodecCtxOut->bit_rate_tolerance = 80000;
   pCodecCtxOut->width = pCodecCtx->width;
   pCodecCtxOut->height = pCodecCtx->height;
-  pCodecCtxOut->time_base = pCodecCtx->time_base; //(AVRational){1,10};
+  pCodecCtxOut->time_base = (AVRational){1,10};
   //pCodecCtxOut->r_frame_rate = pCodecCtx->r_frame_rate; //(AVRational){1,10};
   pCodecCtxOut->gop_size = pCodecCtx->gop_size;
-  pCodecCtxOut->max_b_frames = pCodecCtx->max_b_frames;
+  //pCodecCtxOut->max_b_frames = pCodecCtx->max_b_frames;
   pCodecCtxOut->pix_fmt = pCodecCtx->pix_fmt;
+
+  // stealing a profile to make x264 work
+  //pCodecCtxOut->bit_rate_tolerance = 0;
+  /*pCodecCtxOut->rc_max_rate = 0;
+  pCodecCtxOut->rc_buffer_size = 0;
+  pCodecCtxOut->b_frame_strategy = 1;
+  pCodecCtxOut->coder_type = 1;
+  pCodecCtxOut->me_cmp = 1;
+  pCodecCtxOut->me_range = 16;
+  pCodecCtxOut->qmin = 10;
+  pCodecCtxOut->qmax = 51;
+  pCodecCtxOut->scenechange_threshold = 40;
+  pCodecCtxOut->flags |= CODEC_FLAG_LOOP_FILTER;
+  pCodecCtxOut->me_method = ME_HEX;
+  pCodecCtxOut->me_subpel_quality = 5;
+  pCodecCtxOut->i_quant_factor = 0.71;
+  pCodecCtxOut->qcompress = 0.6;
+  pCodecCtxOut->max_qdiff = 4;
+  pCodecCtxOut->directpred = 1;
+  pCodecCtxOut->flags2 |= CODEC_FLAG2_FASTPSKIP;*/
+
+  pCodecCtxOut->me_range = 16; 
+  pCodecCtxOut->max_qdiff = 4; 
+  pCodecCtxOut->qmin = 10; 
+  pCodecCtxOut->qmax = 51; 
+  pCodecCtxOut->qcompress = 0.6; 
 
 
 
@@ -186,6 +212,8 @@ printf("Ready to start the process\n");
         av_init_packet(&packetOut);
         packetOut.data = NULL;    // packet data will be allocated by the encoder
         packetOut.size = 0;
+        // clear pts
+        //pFrame->pts = AV_NOPTS_VALUE;
 
         // use avcodec_encode_video() (not 2)
         out_size = avcodec_encode_video(pCodecCtxOut, outbuf, outbuf_size, pFrame);
