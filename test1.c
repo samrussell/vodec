@@ -132,10 +132,6 @@ int main(int argc, char *argv[]) {
   pCodecCtxOut->pix_fmt = pCodecCtx->pix_fmt;
 
 
-  if (avcodec_open(pCodecCtxOut, pCodecOut) < 0) {
-    fprintf(stderr, "Could not open codec\n");
-    exit(1);
-  }
 
 
   outfmtcontext = OpenOutput(argv[2], NULL);
@@ -146,11 +142,21 @@ int main(int argc, char *argv[]) {
   outfmt = outfmtcontext->oformat;
 
 
-  outvideostream = avformat_new_stream(outfmtcontext, NULL);
-  avcodec_copy_context( outvideostream->codec, pCodecCtxOut );
+  if (avcodec_open(pCodecCtxOut, pCodecOut) < 0) {
+    fprintf(stderr, "Could not open codec\n");
+    exit(1);
+  }
+  
+  // this has to be set before we open the encoder
+  // but after we get the format context
+  // this way the codec sets global headers properly
 
   if (outfmt->flags & AVFMT_GLOBALHEADER)
     pCodecCtxOut->flags |= CODEC_FLAG_GLOBAL_HEADER;
+
+  outvideostream = avformat_new_stream(outfmtcontext, NULL);
+  avcodec_copy_context( outvideostream->codec, pCodecCtxOut );
+
 
   if (avformat_write_header(outfmtcontext, NULL) < 0) {
     fprintf(stderr, "Error occurred when opening output file\n");
