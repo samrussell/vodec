@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
   }
 
 
-  pCodecCtxOut->bit_rate = 4000000;
+  pCodecCtxOut->bit_rate = 1500000;
 
   pCodecCtxOut->width = pCodecCtx->width;
   pCodecCtxOut->height = pCodecCtx->height;
