@@ -127,10 +127,10 @@ int main(int argc, char *argv[]) {
   pCodecCtxOut->bit_rate_tolerance = 76800;
   pCodecCtxOut->rc_max_rate = 768000;
   pCodecCtxOut->rc_min_rate = 768000;
-  pCodecCtxOut->rc_buffer_size = 3000000;
+  pCodecCtxOut->rc_buffer_size = 300000000;
   //av_dict_set(&v_opts, "profile", "main", 0);
   //av_dict_set(&v_opts, "tune", "zerolatency", 0);
-  av_opt_set_dict(pCodecCtxOut, &v_opts);
+  //av_opt_set_dict(pCodecCtxOut, &v_opts);
   pCodecCtxOut->width = pCodecCtx->width;
   pCodecCtxOut->height = pCodecCtx->height;
   pCodecCtxOut->time_base = (AVRational){1,10};
@@ -138,7 +138,7 @@ int main(int argc, char *argv[]) {
   pCodecCtxOut->gop_size = pCodecCtx->gop_size;
   //pCodecCtxOut->max_b_frames = pCodecCtx->max_b_frames;
   pCodecCtxOut->pix_fmt = pCodecCtx->pix_fmt;
-  pCodecCtxOut->profile = FF_PROFILE_H264_HIGH;
+  pCodecCtxOut->profile = FF_PROFILE_H264_BASELINE;
   pCodecCtxOut->level = 51;
 /*
 #define FF_PROFILE_H264_BASELINE             66
