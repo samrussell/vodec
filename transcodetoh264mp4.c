@@ -54,6 +54,7 @@ int main(int argc, char *argv[]) {
   AVFormatContext *outfmtcontext;
   AVStream        *outvideostream=NULL;
   AVCodec         *outvideocodec;
+  AVDictionary *v_opts = NULL;
 
   uint8_t endcode[] = { 0, 0, 1, 0xb7 };
 
@@ -122,8 +123,14 @@ int main(int argc, char *argv[]) {
   }
 
 
-  pCodecCtxOut->bit_rate = 38400000;
-  pCodecCtxOut->bit_rate_tolerance = 80000;
+  pCodecCtxOut->bit_rate = 768000;
+  pCodecCtxOut->bit_rate_tolerance = 76800;
+  pCodecCtxOut->rc_max_rate = 768000;
+  pCodecCtxOut->rc_min_rate = 768000;
+  pCodecCtxOut->rc_buffer_size = 3000000;
+  //av_dict_set(&v_opts, "profile", "main", 0);
+  //av_dict_set(&v_opts, "tune", "zerolatency", 0);
+  av_opt_set_dict(pCodecCtxOut, &v_opts);
   pCodecCtxOut->width = pCodecCtx->width;
   pCodecCtxOut->height = pCodecCtx->height;
   pCodecCtxOut->time_base = (AVRational){1,10};
@@ -131,7 +138,23 @@ int main(int argc, char *argv[]) {
   pCodecCtxOut->gop_size = pCodecCtx->gop_size;
   //pCodecCtxOut->max_b_frames = pCodecCtx->max_b_frames;
   pCodecCtxOut->pix_fmt = pCodecCtx->pix_fmt;
-
+  pCodecCtxOut->profile = FF_PROFILE_H264_HIGH;
+  pCodecCtxOut->level = 51;
+/*
+#define FF_PROFILE_H264_BASELINE             66
+#define FF_PROFILE_H264_CONSTRAINED_BASELINE (66|FF_PROFILE_H264_CONSTRAINED)
+#define FF_PROFILE_H264_MAIN                 77
+#define FF_PROFILE_H264_EXTENDED             88
+#define FF_PROFILE_H264_HIGH                 100
+#define FF_PROFILE_H264_HIGH_10              110
+#define FF_PROFILE_H264_HIGH_10_INTRA        (110|FF_PROFILE_H264_INTRA)
+#define FF_PROFILE_H264_HIGH_422             122
+#define FF_PROFILE_H264_HIGH_422_INTRA       (122|FF_PROFILE_H264_INTRA)
+#define FF_PROFILE_H264_HIGH_444             144
+#define FF_PROFILE_H264_HIGH_444_PREDICTIVE  244
+#define FF_PROFILE_H264_HIGH_444_INTRA       (244|FF_PROFILE_H264_INTRA)
+#define FF_PROFILE_H264_CAVLC_444            44
+*/
   // stealing a profile to make x264 work
   //pCodecCtxOut->bit_rate_tolerance = 0;
   /*pCodecCtxOut->rc_max_rate = 0;
@@ -214,6 +237,7 @@ printf("Ready to start the process\n");
         packetOut.size = 0;
         // clear pts
         //pFrame->pts = AV_NOPTS_VALUE;
+        pFrame->pts = i*100;
 
         // use avcodec_encode_video() (not 2)
         out_size = avcodec_encode_video(pCodecCtxOut, outbuf, outbuf_size, pFrame);
