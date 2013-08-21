@@ -123,11 +123,11 @@ int main(int argc, char *argv[]) {
   }
 
 
-  //pCodecCtxOut->bit_rate = 768000;
-  //pCodecCtxOut->bit_rate_tolerance = 76800;
-  //pCodecCtxOut->rc_max_rate = 768000;
-  //pCodecCtxOut->rc_min_rate = 768000;
-  //pCodecCtxOut->rc_buffer_size = 300000000;
+  pCodecCtxOut->bit_rate = 0;
+  pCodecCtxOut->bit_rate_tolerance = 0;
+  pCodecCtxOut->rc_max_rate = 50000;
+  pCodecCtxOut->rc_min_rate = 0;
+  pCodecCtxOut->rc_buffer_size = 10000000;
   //av_dict_set(&v_opts, "vprofile", "baseline", 0);
   //av_dict_set(&v_opts, "tune", "zerolatency", 0);
   //av_dict_set(&v_opts, "preset", "medium", 0);
@@ -144,8 +144,8 @@ int main(int argc, char *argv[]) {
   pCodecCtxOut->gop_size = pCodecCtx->gop_size;
   //pCodecCtxOut->max_b_frames = pCodecCtx->max_b_frames;
   pCodecCtxOut->pix_fmt = pCodecCtx->pix_fmt;
-  //pCodecCtxOut->profile = FF_PROFILE_H264_BASELINE;
-  pCodecCtxOut->level = 10;
+  pCodecCtxOut->profile = FF_PROFILE_H264_HIGH;
+  pCodecCtxOut->level = 51;
 /*
 #define FF_PROFILE_H264_BASELINE             66
 #define FF_PROFILE_H264_CONSTRAINED_BASELINE (66|FF_PROFILE_H264_CONSTRAINED)
@@ -255,7 +255,7 @@ printf("Ready to start the process\n");
         packetOut.size = 0;
         // clear pts
         //pFrame->pts = AV_NOPTS_VALUE;
-        pFrameOut->pts = i*100;
+        pFrameOut->pts = i;//*100;
 
         // use avcodec_encode_video() (not 2)
         out_size = avcodec_encode_video(pCodecCtxOut, outbuf, outbuf_size, pFrameOut);
@@ -264,7 +264,9 @@ printf("Ready to start the process\n");
         packetOut.data=outbuf;
         packetOut.size = out_size;
         //fwrite(outbuf, 1, out_size, f);
-        av_write_frame(outfmtcontext, &packetOut);
+        if(out_size>0){
+          av_write_frame(outfmtcontext, &packetOut);
+        }
         av_free_packet(&packetOut);
         av_free(pFrameOut);
 
