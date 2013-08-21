@@ -123,10 +123,10 @@ int main(int argc, char *argv[]) {
   }
 
 
-  pCodecCtxOut->bit_rate = 768000;
-  pCodecCtxOut->bit_rate_tolerance = 76800;
+  //pCodecCtxOut->bit_rate = 768000;
+  //pCodecCtxOut->bit_rate_tolerance = 76800;
   pCodecCtxOut->rc_max_rate = 768000;
-  pCodecCtxOut->rc_min_rate = 768000;
+  //pCodecCtxOut->rc_min_rate = 768000;
   pCodecCtxOut->rc_buffer_size = 300000000;
   //av_dict_set(&v_opts, "profile", "main", 0);
   //av_dict_set(&v_opts, "tune", "zerolatency", 0);
@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
   //pCodecCtxOut->max_b_frames = pCodecCtx->max_b_frames;
   pCodecCtxOut->pix_fmt = pCodecCtx->pix_fmt;
   pCodecCtxOut->profile = FF_PROFILE_H264_BASELINE;
-  pCodecCtxOut->level = 51;
+  pCodecCtxOut->level = 10;
 /*
 #define FF_PROFILE_H264_BASELINE             66
 #define FF_PROFILE_H264_CONSTRAINED_BASELINE (66|FF_PROFILE_H264_CONSTRAINED)
@@ -233,14 +233,23 @@ printf("Ready to start the process\n");
       if(frameFinished) {
 	      // encode
         av_init_packet(&packetOut);
+        pFrameOut=avcodec_alloc_frame();
+        pFrameOut->data[0] = pFrame->data[0];
+        pFrameOut->data[1] = pFrame->data[1];
+        pFrameOut->data[2] = pFrame->data[2];
+        pFrameOut->data[3] = pFrame->data[3];
+        pFrameOut->data[4] = pFrame->data[4];
+        pFrameOut->data[5] = pFrame->data[5];
+        pFrameOut->data[6] = pFrame->data[6];
+        pFrameOut->data[7] = pFrame->data[7];
         packetOut.data = NULL;    // packet data will be allocated by the encoder
         packetOut.size = 0;
         // clear pts
         //pFrame->pts = AV_NOPTS_VALUE;
-        pFrame->pts = i*100;
+        pFrameOut->pts = i*100;
 
         // use avcodec_encode_video() (not 2)
-        out_size = avcodec_encode_video(pCodecCtxOut, outbuf, outbuf_size, pFrame);
+        out_size = avcodec_encode_video(pCodecCtxOut, outbuf, outbuf_size, pFrameOut);
         //printf("Called avcodec_encode_video()\n");
         printf("encoding frame %3d (size=%5d)\n", i, out_size);
         packetOut.data=outbuf;
@@ -248,6 +257,7 @@ printf("Ready to start the process\n");
         //fwrite(outbuf, 1, out_size, f);
         av_write_frame(outfmtcontext, &packetOut);
         av_free_packet(&packetOut);
+        av_free(pFrameOut);
 
         //if (got_output) {
         //  printf("Write frame %3d (size=%5d)\n", i, packetOut.size);
