@@ -125,12 +125,13 @@ int main(int argc, char *argv[]) {
 
   //pCodecCtxOut->bit_rate = 768000;
   //pCodecCtxOut->bit_rate_tolerance = 76800;
-  pCodecCtxOut->rc_max_rate = 768000;
+  //pCodecCtxOut->rc_max_rate = 768000;
   //pCodecCtxOut->rc_min_rate = 768000;
-  pCodecCtxOut->rc_buffer_size = 300000000;
-  //av_dict_set(&v_opts, "profile", "main", 0);
+  //pCodecCtxOut->rc_buffer_size = 300000000;
+  av_dict_set(&v_opts, "vprofile", "baseline", 0);
   //av_dict_set(&v_opts, "tune", "zerolatency", 0);
-  //av_opt_set_dict(pCodecCtxOut, &v_opts);
+  //av_dict_set(&v_opts, "preset", "ultrafast", 0);
+  av_opt_set_dict(pCodecCtxOut, &v_opts);
   pCodecCtxOut->width = pCodecCtx->width;
   pCodecCtxOut->height = pCodecCtx->height;
   pCodecCtxOut->time_base = (AVRational){1,10};
@@ -138,7 +139,7 @@ int main(int argc, char *argv[]) {
   pCodecCtxOut->gop_size = pCodecCtx->gop_size;
   //pCodecCtxOut->max_b_frames = pCodecCtx->max_b_frames;
   pCodecCtxOut->pix_fmt = pCodecCtx->pix_fmt;
-  pCodecCtxOut->profile = FF_PROFILE_H264_BASELINE;
+  //pCodecCtxOut->profile = FF_PROFILE_H264_BASELINE;
   pCodecCtxOut->level = 10;
 /*
 #define FF_PROFILE_H264_BASELINE             66
@@ -175,11 +176,11 @@ int main(int argc, char *argv[]) {
   pCodecCtxOut->directpred = 1;
   pCodecCtxOut->flags2 |= CODEC_FLAG2_FASTPSKIP;*/
 
-  pCodecCtxOut->me_range = 16; 
-  pCodecCtxOut->max_qdiff = 4; 
-  pCodecCtxOut->qmin = 10; 
-  pCodecCtxOut->qmax = 51; 
-  pCodecCtxOut->qcompress = 0.6; 
+  //pCodecCtxOut->me_range = 16; 
+  //pCodecCtxOut->max_qdiff = 4; 
+  //pCodecCtxOut->qmin = 10; 
+  //pCodecCtxOut->qmax = 51; 
+  //pCodecCtxOut->qcompress = 0.6; 
 
 
 
@@ -195,7 +196,7 @@ int main(int argc, char *argv[]) {
     pCodecCtxOut->flags |= CODEC_FLAG_GLOBAL_HEADER;
 
 
-  if (avcodec_open(pCodecCtxOut, pCodecOut) < 0) {
+  if (avcodec_open2(pCodecCtxOut, pCodecOut, &v_opts) < 0) {
     fprintf(stderr, "Could not open codec\n");
     exit(1);
   }
@@ -234,14 +235,17 @@ printf("Ready to start the process\n");
 	      // encode
         av_init_packet(&packetOut);
         pFrameOut=avcodec_alloc_frame();
-        pFrameOut->data[0] = pFrame->data[0];
-        pFrameOut->data[1] = pFrame->data[1];
-        pFrameOut->data[2] = pFrame->data[2];
-        pFrameOut->data[3] = pFrame->data[3];
-        pFrameOut->data[4] = pFrame->data[4];
-        pFrameOut->data[5] = pFrame->data[5];
-        pFrameOut->data[6] = pFrame->data[6];
-        pFrameOut->data[7] = pFrame->data[7];
+        memcpy(pFrameOut->data, pFrame->data, AV_NUM_DATA_POINTERS * sizeof(uint8_t*));
+        memcpy(pFrameOut->linesize, pFrame->linesize, AV_NUM_DATA_POINTERS * sizeof(int*));
+        memcpy(pFrameOut->base, pFrame->base, AV_NUM_DATA_POINTERS * sizeof(uint8_t*));
+        //pFrameOut->data[0] = pFrame->data[0];
+        //pFrameOut->data[1] = pFrame->data[1];
+        //pFrameOut->data[2] = pFrame->data[2];
+        //pFrameOut->data[3] = pFrame->data[3];
+        //pFrameOut->data[4] = pFrame->data[4];
+        //pFrameOut->data[5] = pFrame->data[5];
+        //pFrameOut->data[6] = pFrame->data[6];
+        //pFrameOut->data[7] = pFrame->data[7];
         packetOut.data = NULL;    // packet data will be allocated by the encoder
         packetOut.size = 0;
         // clear pts
