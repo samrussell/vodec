@@ -128,10 +128,15 @@ int main(int argc, char *argv[]) {
   //pCodecCtxOut->rc_max_rate = 768000;
   //pCodecCtxOut->rc_min_rate = 768000;
   //pCodecCtxOut->rc_buffer_size = 300000000;
-  av_dict_set(&v_opts, "vprofile", "baseline", 0);
+  //av_dict_set(&v_opts, "vprofile", "baseline", 0);
   //av_dict_set(&v_opts, "tune", "zerolatency", 0);
-  //av_dict_set(&v_opts, "preset", "ultrafast", 0);
-  av_opt_set_dict(pCodecCtxOut, &v_opts);
+  //av_dict_set(&v_opts, "preset", "medium", 0);
+  //printf("Setting preset\n");
+  //av_dict_set(pCodecCtxOut->priv_data, "preset", "ultrafast", 0);
+  //av_dict_set(pCodecCtxOut->priv_data, "vprofile", "baseline", 0);
+  //printf("Set preset\n");
+  //av_dict_set(pCodecCtxOut->priv_data, "tune", "zerolatency", 0);
+  //av_opt_set_dict(pCodecCtxOut, &v_opts);
   pCodecCtxOut->width = pCodecCtx->width;
   pCodecCtxOut->height = pCodecCtx->height;
   pCodecCtxOut->time_base = (AVRational){1,10};
@@ -176,11 +181,11 @@ int main(int argc, char *argv[]) {
   pCodecCtxOut->directpred = 1;
   pCodecCtxOut->flags2 |= CODEC_FLAG2_FASTPSKIP;*/
 
-  //pCodecCtxOut->me_range = 16; 
-  //pCodecCtxOut->max_qdiff = 4; 
-  //pCodecCtxOut->qmin = 10; 
-  //pCodecCtxOut->qmax = 51; 
-  //pCodecCtxOut->qcompress = 0.6; 
+  pCodecCtxOut->me_range = 16; 
+  pCodecCtxOut->max_qdiff = 4; 
+  pCodecCtxOut->qmin = 10; 
+  pCodecCtxOut->qmax = 51; 
+  pCodecCtxOut->qcompress = 0.6; 
 
 
 
