@@ -6,21 +6,18 @@
 #include "codec.h"
 #include <libavcodec/avcodec.h>
 
-
-/*
- * OpenEncoder(type, bitrate)
- * Opens an encoder and does some of the heavy lifting
- */
-
-AVCodecContext* OpenEncoder(enum AVCodecID codecid, int bitrate){
-  AVCodecContext* codec_context;
-
+AVCodec* SetupCodec(enum AVCodecID codecid){
   codec = avcodec_find_encoder(codecid); //CODEC_ID_H264
 
   if (!codec) {
     printf("Codec not found\n");
     return NULL;
   }
+  return codec;
+}
+
+AVCodecContext* SetupCodecContext(int bitrate, enum AVCodecID codecid){
+  AVCodecContext* codec_context;
 
   codec_context = avcodec_alloc_context();
   if (!codec_context){
@@ -39,4 +36,15 @@ AVCodecContext* OpenEncoder(enum AVCodecID codecid, int bitrate){
     // set codeccontext presets 
   }
   return codec_context;
+}
+
+
+/*
+ * OpenEncoder(type, bitrate)
+ * Opens an encoder and does some of the heavy lifting
+ */
+
+AVCodecContext* OpenEncoder(enum AVCodecID codecid, int bitrate){
+  AVCodecContext* codec_context;
+  return NULL;
 }
