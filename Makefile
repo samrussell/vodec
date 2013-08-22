@@ -18,7 +18,7 @@ EXE:=test1.out test2.out transcodetoh264mp4.out
 # $< is the first dependency in the dependency list
 # $@ is the target name
 #
-all: dirs obj/io.o $(addprefix bin/, $(EXE)) tags
+all: dirs obj/io.o obj/codec.o $(addprefix bin/, $(EXE)) tags
 
 dirs:
 	mkdir -p obj
@@ -28,7 +28,7 @@ tags: *.c
 	ctags *.c
 
 bin/%.out: obj/%.o
-	$(CC) $(CFLAGS) $< $(LDFLAGS) obj/io.o -o $@
+	$(CC) $(CFLAGS) $< $(LDFLAGS) obj/io.o obj/codec.o -o $@
 
 obj/%.o : %.c
 	$(CC) $(CFLAGS) $< $(INCLUDES) -c -o $@

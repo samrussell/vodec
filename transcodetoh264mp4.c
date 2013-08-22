@@ -24,6 +24,7 @@
 #include <stdio.h>
 
 #include "io.h"
+#include "codec.h"
 
 int main(int argc, char *argv[]) {
   AVFormatContext *pFormatCtx = NULL;
@@ -109,25 +110,30 @@ int main(int argc, char *argv[]) {
   // Set up output encoder too
 
   // find the encoder AV_CODEC_ID_H264
-  pCodecOut = avcodec_find_encoder(CODEC_ID_H264); //CODEC_ID_H264);
+  //pCodecOut = avcodec_find_encoder(CODEC_ID_H264); //CODEC_ID_H264);
 
-  if (!pCodecOut) {
-    fprintf(stderr, "Codec not found\n");
-    exit(1);
-  }
+  //if (!pCodecOut) {
+  //  fprintf(stderr, "Codec not found\n");
+  //  exit(1);
+  //}
+  pCodecOut = SetupCodec(CODEC_ID_H264);
 
-  pCodecCtxOut = avcodec_alloc_context();
-  if (!pCodecCtxOut) {
-    fprintf(stderr, "Could not allocate video codec context\n");
-    exit(1);
-  }
+  //pCodecCtxOut = avcodec_alloc_context();
+  //if (!pCodecCtxOut) {
+  //  fprintf(stderr, "Could not allocate video codec context\n");
+  //  exit(1);
+  //}
 
 
-  pCodecCtxOut->bit_rate = 0;
-  pCodecCtxOut->bit_rate_tolerance = 0;
-  pCodecCtxOut->rc_max_rate = 50000;
-  pCodecCtxOut->rc_min_rate = 0;
-  pCodecCtxOut->rc_buffer_size = 10000000;
+  //pCodecCtxOut->bit_rate = 0;
+  //pCodecCtxOut->bit_rate_tolerance = 0;
+  //pCodecCtxOut->rc_max_rate = 50000;
+  //pCodecCtxOut->rc_min_rate = 0;
+  //pCodecCtxOut->rc_buffer_size = 10000000;
+
+  pCodecCtxOut = SetupCodecContext(pCodecCtx->width, pCodecCtx->height, 10, 70000, CODEC_ID_H264);
+  pCodecCtxOut->gop_size = pCodecCtx->gop_size;
+  pCodecCtxOut->pix_fmt = pCodecCtx->pix_fmt;
   //av_dict_set(&v_opts, "vprofile", "baseline", 0);
   //av_dict_set(&v_opts, "tune", "zerolatency", 0);
   //av_dict_set(&v_opts, "preset", "medium", 0);
@@ -137,15 +143,10 @@ int main(int argc, char *argv[]) {
   //printf("Set preset\n");
   //av_dict_set(pCodecCtxOut->priv_data, "tune", "zerolatency", 0);
   //av_opt_set_dict(pCodecCtxOut, &v_opts);
-  pCodecCtxOut->width = pCodecCtx->width;
-  pCodecCtxOut->height = pCodecCtx->height;
-  pCodecCtxOut->time_base = (AVRational){1,10};
+  //pCodecCtxOut->width = pCodecCtx->width;
+  //pCodecCtxOut->height = pCodecCtx->height;
+  //pCodecCtxOut->time_base = (AVRational){1,10};
   //pCodecCtxOut->r_frame_rate = pCodecCtx->r_frame_rate; //(AVRational){1,10};
-  pCodecCtxOut->gop_size = pCodecCtx->gop_size;
-  //pCodecCtxOut->max_b_frames = pCodecCtx->max_b_frames;
-  pCodecCtxOut->pix_fmt = pCodecCtx->pix_fmt;
-  pCodecCtxOut->profile = FF_PROFILE_H264_HIGH;
-  pCodecCtxOut->level = 51;
 /*
 #define FF_PROFILE_H264_BASELINE             66
 #define FF_PROFILE_H264_CONSTRAINED_BASELINE (66|FF_PROFILE_H264_CONSTRAINED)
@@ -181,11 +182,6 @@ int main(int argc, char *argv[]) {
   pCodecCtxOut->directpred = 1;
   pCodecCtxOut->flags2 |= CODEC_FLAG2_FASTPSKIP;*/
 
-  pCodecCtxOut->me_range = 16; 
-  pCodecCtxOut->max_qdiff = 4; 
-  pCodecCtxOut->qmin = 10; 
-  pCodecCtxOut->qmax = 51; 
-  pCodecCtxOut->qcompress = 0.6; 
 
 
 

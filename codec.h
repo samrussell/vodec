@@ -5,6 +5,6 @@
 
 #include <libavcodec/avcodec.h>
 
-AVCodec* SetupCodec(enum AVCodecID codecid);
-AVCodecContext* OpenEncoder(enum AVCodecID codecid, int bitrate);
-AVCodecContext* SetupCodecContext(int bitrate, enum AVCodecID codecid);
+AVCodec* SetupCodec(enum CodecID codecid);
+AVCodecContext* OpenEncoder(enum CodecID codecid, int bitrate);
+AVCodecContext* SetupCodecContext(int width, int height, int fps, int bitrate, enum CodecID codecid);
