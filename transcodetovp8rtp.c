@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
 
   AVDictionary    *optionsDictOut = NULL;
 
-  if(argc < 3) {
+  if(argc < 2) {
     printf("Please provide a movie file\n");
     return -1;
   }
@@ -186,7 +186,28 @@ int main(int argc, char *argv[]) {
 
 
 
-  outfmtcontext = OpenOutput(argv[2], NULL);
+  outfmtcontext = OpenOutput("rtp://127.0.0.1:12000", av_guess_format("rtp", NULL, NULL));
+
+  /*outfmtcontext = avformat_alloc_context();
+  if (!outfmtcontext){
+    printf("avformat_alloc_context() failed\n");
+    return NULL;
+  }
+  if(!output_format)
+    output_format = av_guess_format(NULL, filename, NULL);
+  format_context->oformat = output_format;
+
+  if (!(output_format->flags & AVFMT_NOFILE)) {
+    if (avio_open(&format_context->pb, filename, AVIO_FLAG_WRITE) < 0) {
+      printf("avio_open() failed\n");
+      return NULL;
+    }
+  }
+  else{
+    printf("AVFMT_NOFILE not in flags\n");
+    return NULL;
+  }*/
+
   if (!outfmtcontext){
     fprintf(stderr, "Couldn't create output format context\n");
     exit(1);
