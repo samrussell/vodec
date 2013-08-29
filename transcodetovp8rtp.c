@@ -236,6 +236,11 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
+  // send sdp
+  //char sdp[2048];
+  //av_sdp_create(pCodecCtxOut, 1, sdp, sizeof(sdp);
+
+
 
 outbuf_size=100000;
 outbuf=calloc(outbuf_size, 1);
