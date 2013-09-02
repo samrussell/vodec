@@ -22,6 +22,7 @@
 #include <libswscale/swscale.h>
 
 #include <stdio.h>
+#include <time.h>
 
 #include "io.h"
 #include "codec.h"
@@ -56,6 +57,8 @@ int main(int argc, char *argv[]) {
   AVStream        *outvideostream=NULL;
   AVCodec         *outvideocodec;
   AVDictionary *v_opts = NULL;
+  int timeticks;
+  struct timespec tp;
 
   uint8_t endcode[] = { 0, 0, 1, 0xb7 };
 
@@ -131,7 +134,7 @@ int main(int argc, char *argv[]) {
   //pCodecCtxOut->rc_min_rate = 0;
   //pCodecCtxOut->rc_buffer_size = 10000000;
 
-  pCodecCtxOut = SetupCodecContext(pCodecCtx->width, pCodecCtx->height, 10, 70000, CODEC_ID_H264);
+  pCodecCtxOut = SetupCodecContext(pCodecCtx->width, pCodecCtx->height, 24, 30000, CODEC_ID_H264);
   pCodecCtxOut->gop_size = pCodecCtx->gop_size;
   pCodecCtxOut->pix_fmt = pCodecCtx->pix_fmt;
   //av_dict_set(&v_opts, "vprofile", "baseline", 0);
@@ -186,7 +189,7 @@ int main(int argc, char *argv[]) {
 
 
 
-  outfmtcontext = OpenOutput("rtp://127.0.0.1:12000", av_guess_format("rtp", NULL, NULL));
+  outfmtcontext = OpenOutput("rtp://192.168.1.112:9078", av_guess_format("rtp", NULL, NULL));
 
   /*outfmtcontext = avformat_alloc_context();
   if (!outfmtcontext){
@@ -250,6 +253,8 @@ printf("Ready to start the process\n");
 
   // Read frames and save first five frames to disk
   i=0;
+  clock_gettime(CLOCK_MONOTONIC, &tp);
+  timeticks = (int) tp.tv_sec;
   while(av_read_frame(pFormatCtx, &packet)>=0) {
     // Is this a packet from the video stream?
     if(packet.stream_index==videoStream) {
@@ -291,6 +296,16 @@ printf("Ready to start the process\n");
         }
         av_free_packet(&packetOut);
         av_free(pFrameOut);
+        
+	// busy wait so we don't spam
+	while (((int)tp.tv_sec)-timeticks < i/24){
+	  printf("Time passed: %d\n", ((int)tp.tv_sec)-timeticks);
+	  sleep(1);
+	  clock_gettime(CLOCK_MONOTONIC, &tp);
+	}
+	// sleep for 100 milliseconds so we space properly
+	usleep(100000);
+
 
         //if (got_output) {
         //  printf("Write frame %3d (size=%5d)\n", i, packetOut.size);

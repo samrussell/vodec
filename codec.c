@@ -40,7 +40,7 @@ AVCodecContext* SetupCodecContext(int width, int height, int fps, int bitrate, e
   if(codecid == CODEC_ID_H264){
     // set codeccontext presets 
     codec_context->profile = FF_PROFILE_H264_HIGH;
-    codec_context->level = 51;
+    codec_context->level = 13;
     codec_context->me_range = 16; 
     codec_context->max_qdiff = 4; 
     codec_context->qmin = 10; 
