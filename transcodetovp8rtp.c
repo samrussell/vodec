@@ -29,7 +29,7 @@
 
 int main(int argc, char *argv[]) {
   AVFormatContext *pFormatCtx = NULL;
-  int             i, videoStream;
+  int             i, videoStream, outframe;
   AVCodecContext  *pCodecCtx = NULL;
   AVCodec         *pCodec = NULL;
   AVFrame         *pFrame = NULL;
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
 
   AVDictionary    *optionsDictOut = NULL;
 
-  if(argc < 2) {
+  if(argc < 3) {
     printf("Please provide a movie file\n");
     return -1;
   }
@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
   //  fprintf(stderr, "Codec not found\n");
   //  exit(1);
   //}
-  pCodecOut = SetupCodec(CODEC_ID_H264);
+  pCodecOut = SetupCodec(CODEC_ID_H263P);
 
   //pCodecCtxOut = avcodec_alloc_context();
   //if (!pCodecCtxOut) {
@@ -134,9 +134,12 @@ int main(int argc, char *argv[]) {
   //pCodecCtxOut->rc_min_rate = 0;
   //pCodecCtxOut->rc_buffer_size = 10000000;
 
-  pCodecCtxOut = SetupCodecContext(pCodecCtx->width, pCodecCtx->height, 24, 30000, CODEC_ID_H264);
+  //pCodecCtxOut = SetupCodecContext(pCodecCtx->width, pCodecCtx->height, 24, 30000, CODEC_ID_H264);
+  pCodecCtxOut = SetupCodecContext(pCodecCtx->width, pCodecCtx->height, 25, 7000000, CODEC_ID_H263P);
   pCodecCtxOut->gop_size = pCodecCtx->gop_size;
   pCodecCtxOut->pix_fmt = pCodecCtx->pix_fmt;
+  //pCodecCtxOut->bit_rate = 0;
+  pCodecCtxOut->bit_rate_tolerance = 5000000;
   //av_dict_set(&v_opts, "vprofile", "baseline", 0);
   //av_dict_set(&v_opts, "tune", "zerolatency", 0);
   //av_dict_set(&v_opts, "preset", "medium", 0);
@@ -189,7 +192,7 @@ int main(int argc, char *argv[]) {
 
 
 
-  outfmtcontext = OpenOutput("rtp://192.168.1.112:9078", av_guess_format("rtp", NULL, NULL));
+  outfmtcontext = OpenOutput(argv[2], av_guess_format("rtp", NULL, NULL));
 
   /*outfmtcontext = avformat_alloc_context();
   if (!outfmtcontext){
@@ -245,7 +248,7 @@ int main(int argc, char *argv[]) {
 
 
 
-outbuf_size=100000;
+outbuf_size=1000000;
 outbuf=calloc(outbuf_size, 1);
 printf("Buffer address: 0x%X\n", outbuf);
 
@@ -253,6 +256,7 @@ printf("Ready to start the process\n");
 
   // Read frames and save first five frames to disk
   i=0;
+  outframe=0;
   clock_gettime(CLOCK_MONOTONIC, &tp);
   timeticks = (int) tp.tv_sec;
   while(av_read_frame(pFormatCtx, &packet)>=0) {
@@ -293,18 +297,20 @@ printf("Ready to start the process\n");
         //fwrite(outbuf, 1, out_size, f);
         if(out_size>0){
           av_write_frame(outfmtcontext, &packetOut);
+          outframe++;
         }
+        printf("i %d outframe %d\n", i, outframe);
         av_free_packet(&packetOut);
         av_free(pFrameOut);
         
 	// busy wait so we don't spam
-	while (((int)tp.tv_sec)-timeticks < i/24){
+	while (((int)tp.tv_sec)-timeticks < i/50){
 	  printf("Time passed: %d\n", ((int)tp.tv_sec)-timeticks);
 	  sleep(1);
 	  clock_gettime(CLOCK_MONOTONIC, &tp);
 	}
 	// sleep for 100 milliseconds so we space properly
-	usleep(100000);
+	usleep(1000000/25);
 
 
         //if (got_output) {

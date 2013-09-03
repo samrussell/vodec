@@ -4,7 +4,7 @@
 CC:=gcc
 INCLUDES:=$(shell pkg-config --cflags libavformat libavcodec libswscale libavutil)
 CFLAGS:=-Wall -ggdb
-LDFLAGS:=$(shell pkg-config --libs libavformat libavcodec libswscale libavutil) -lm
+LDFLAGS:=$(shell pkg-config --libs libavformat libavcodec libswscale libavutil) -lm -lrt
 EXE:=test1.out test2.out transcodetoh264mp4.out transcodetovp8rtp.out
 
 
